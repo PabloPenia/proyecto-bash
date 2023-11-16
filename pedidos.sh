@@ -22,9 +22,8 @@ ingresarPedido() {
           read -p "Continuar con cliente $codigo_cliente?. (responde s/n)" respuesta
           respuesta="${respuesta,,}"
           if [ "$respuesta" == "s" ]; then
-            # continuar con telefono del cliente x letra del obligatorio
             tel_cliente=${resultado: -13}
-            ingresarPedido "$tel_cliente"
+            printf "$tel_cliente," >> .temp$USER
           else
             clear
             ingresarPedido
