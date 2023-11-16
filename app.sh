@@ -13,12 +13,12 @@ while true; do
   2)
     # https://losmateospizzeria.com.uy/menu/losmateospizzeria
     clear
-    mostrarRegistrosCSV "combos.csv"
+    mostrarRegistrosCSV "$listaCombos"
     read -p "$continuar"
     ;;
   3)
     clear
-    mostrarRegistrosCSV "clientes.csv"
+    mostrarRegistrosCSV "$listaClientes"
     read -p "$continuar"
     ;;
   "q")

@@ -1,7 +1,10 @@
 source pedidos.sh
 source menu.sh
-listaClientes=./clientes.csv
+listaClientes=db/clientes.csv
+listaCombos=db/combos.csv
+listaPedidos=db/pedidos.csv
 function mostrarRegistrosCSV(){
+  echo ""
   if [[ ! -f "$1" ]]; then
     echo "El archivo $1 no existe"
     return 1 # valor non-zero = error
@@ -37,6 +40,7 @@ function mostrarRegistrosCSV(){
     done
     echo
   done
+  echo ""
 }
 function menuPedidos {
   while true; do
@@ -58,7 +62,7 @@ function menuPedidos {
         ;;
       3)
         clear
-        mostrarRegistrosCSV "pedidos.csv"
+        mostrarRegistrosCSV "db/pedidos.csv"
         read -p "Presiona Enter para continuar..."
         ;;
       "q")
