@@ -1,9 +1,14 @@
 source pedidos.sh
 source menu.sh
+separador() {
+  printf "\n"
+  printf '%.s¯' $(seq 1 $(tput cols))
+  printf "\n\n"
+}
 listaClientes=db/clientes.csv
 listaCombos=db/combos.csv
 listaPedidos=db/pedidos.csv
-function mostrarRegistrosCSV(){
+mostrarRegistrosCSV(){
   echo ""
   if [[ ! -f "$1" ]]; then
     echo "El archivo $1 no existe"
@@ -42,7 +47,7 @@ function mostrarRegistrosCSV(){
   done
   echo ""
 }
-function menuPedidos {
+menuPedidos() {
   while true; do
     clear
     printf "$menu_pedidos"    
@@ -50,7 +55,9 @@ function menuPedidos {
     case $opt in
       1)
         clear
+        separador
         echo "Agregar un pedido"
+        separador
         ingresarPedido
         read -p "Pedido finalizado. $continuar"
         ;;
@@ -67,7 +74,7 @@ function menuPedidos {
         ;;
       "q")
         clear
-        return
+        menuPrincipal
         ;;
 
       *)

@@ -1,61 +1,96 @@
+# Archivo temporal COD_CLIENTE,TEL_CLIENTE,COMBO,CANTIDAD,TOTAL
 ingresarPedido() {
   # TODO: manejar caso con la fecha de argumento
   mkdir -p .temp
-  fecha=$(date +"%d-%m-%Y-%H%M%S")
-  file=.temp/$fecha
-  usuario=$USER
+  local fecha=$(date +"%d-%m-%Y-%H%M%S")
+  local file=.temp/$fecha
+  local current_user="$USER"
   num_orden="ORD001"
   ultimo_pedido=$(awk -F',' 'NR>1 {firstField=$1} END{if (NR>1) print firstField}' "$listaPedidos")
   if [ -n $ultimo_pedido ]; then
     num=$(echo "$ultimo_pedido" | sed 's/ORD//')
-    newNum=$((10#$num + 1))
-    num_orden="ORD(printf "%03d" "$newNum")"
+    newNum=$(($num + 1))
+    num_orden="ORD$(printf "%03d" "$newNum")"    
   fi
-  echo "$num_orden"
   seleccionarCliente "$file"
   seleccionarCombo "$file"
   echo "Verifique si los datos son correctos"
   mostrarRegistrosCSV "$file"
+  read -p "Agregar pedido a la base de datos? (responde s/n)" resp
+  if [ "$resp" == "s" ]; then
+    pedido=$(tail -n +2 "$file")
+    echo "$num_orden,$current_user,$fecha,$pedido" >> $listaPedidos
+    rm $file
+    echo "Pedido ingresado correctamente"
+    sleep 5
+    menuPedidos
+  else
+    clear
+    echo "El pedido se ha cancelado"
+    rm $file
+    sleep 5
+    menuPedidos
+  fi
   read -p "$continuar"
 }
 seleccionarCliente() {
-  # TODO: Verificar que se pase la fecha en linux, en windows no funca
-  read -ep $'\nIngrese el codigo del cliente, o termino de busqueda...\n ' searchTerm
-  resultado=$(grep -i "$searchTerm" "$listaClientes")
+  local client_search
+  read -p "Ingrese término de búsqueda o q para cancelar. " client_search
+  client_search="${client_search,,}"
+
+  if [ "$client_search" == "q" ]; then
+    menuPedidos
+  fi
+  local resultado=$(grep -i "$client_search" "$listaClientes")
 
   if [ -n "$resultado" ]; then
+    # TODO verificar el scope de $codigo, $nombre, $resultado
     echo ""
     echo "CODIGO  NOMBRE          TELEFONO"
     echo "$resultado" | while IFS=, read -r codigo nombre telefono; do
       printf "%-6.6s %-15.15s %-15.15s\n" "$codigo" "$nombre" "$telefono"
     done
-    lines=$(echo "$resultado" | wc -l)
+    local lines=$(echo "$resultado" | wc -l)
     if [ "$lines" -eq 1 ]; then
-      codigo_cliente=${resultado:0:5}
+      local codigo_cliente="${resultado%%,*}"
       printf "\nContinuar con cliente %s?. (responde s/n)\n" "$codigo_cliente"
-      read -ep $'' respuesta
+      # TODO verificar scope
+      read respuesta
       respuesta="${respuesta,,}"
       if [ "$respuesta" == "s" ]; then
-        tel_cliente=${resultado: -13}
-        echo -n "$tel_cliente," > $1
+        # TODO cambiar a busqueda por campo
+        local tel_cliente="${resultado##*,}"
+        echo "COD_CLIENTE,TEL_CLIENTE,COMBO,CANTIDAD,TOTAL" > $1
+        echo -n "$codigo_cliente,$tel_cliente," >> $1
       else
         clear
-        ingresarPedido "$1"
+        echo "Agregar Pedido"
+        seleccionarCliente "$1"
       fi
     else
-      ingresarPedido "$1"
+      printf "\nDemasiados registros, por favor acorte la busqueda utilizando el codigo del cliente.\n\n"
+      seleccionarCliente "$1"
     fi
-  fi 
+  else
+    clear
+    echo "No existen registros para su búsqueda. Inténtelo nuevamente."
+    seleccionarCliente "$1"
+  fi
 }
 seleccionarCombo() {
   mostrarRegistrosCSV "$listaCombos"
-  read -ep $'Ingrese el codigo del combo\n' combo
-  
-  resultado=$(grep -i "$combo" "$listaCombos")
+  local combo
+  read -p "Ingrese el codigo del combo o q para cancelar " combo
+  combo="${combo,,}"
+  if [ "$combo" == "q" ]; then
+    rm "$1"
+    menuPedidos
+  fi
+  local resultado=$(grep -i "$combo" "$listaCombos")
   lines=$(echo "$resultado" | wc -l)
   if [[ -n "$resultado" && "$lines" -eq 1 ]]; then
-    cantidad=0
-    precio="${resultado##*,}"
+    local cantidad=0
+    local precio="${resultado##*,}"
     while true; do
       read -p "Ingrese cantidad de $combo" userQty
       if esCantidadValida "$userQty" ; then
@@ -66,14 +101,14 @@ seleccionarCombo() {
         echo "Debe ingresar un numero mayor de 0."
       fi
     done
-    total=$((cantidad * precio))
+    local total=$((cantidad * precio))
 
     printf "\nConfirmar Combo %s X%d por un total de %d?. (responde s/n)\n" "$combo" "$cantidad" "$total"
   read respuesta
   respuesta="${respuesta,,}"
   if [ "$respuesta" == "s" ]; then
-    item="$combo,$cantidad,$total"
-    echo -n "$item," >> $1
+    local item="$combo,$cantidad,$total"
+    echo "$item" >> $1
   else
     clear
     seleccionarCombo "$1"
