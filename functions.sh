@@ -1,13 +1,8 @@
-source ./pedidos.sh
-source menu.sh
 separador() {
   printf "\n"
   printf '%.s¯' $(seq 1 $(tput cols))
   printf "\n\n"
 }
-listaClientes=db/clientes.csv
-listaCombos=db/combos.csv
-listaPedidos=db/pedidos.csv
 mostrarRegistrosCSV(){
   echo ""
   if [[ ! -f "$1" ]]; then
@@ -47,43 +42,59 @@ mostrarRegistrosCSV(){
   done
   echo ""
 }
-menuPedidos() {
-  while true; do
-    clear
-    printf "$menu_pedidos"    
-    read -p "Selecciona una opción: " opt
-    case $opt in
-      1)
-        clear
-        separador
-        echo "Agregar un pedido"
-        separador
-        ingresarPedido
-        read -p "Pedido finalizado. $continuar"
-        ;;
-      2)
-        clear
-        separador
-        echo "Buscar pedido"
-        separador
-        buscarPedido
-        read -p "Pedido finalizado. $continuar"
-        ;;
-      3)
-        clear
-        mostrarRegistrosCSV "db/pedidos.csv"
-        read -p "Presiona Enter para continuar..."
-        ;;
-      "q")
-        clear
-        menuPrincipal
-        ;;
 
-      *)
-        clear
-        echo "$opt no es una opción válida..."
-        read -p "Presiona Enter para continuar..."
-        ;;
-    esac
+getRegister() {
+  if [ "$#" -eq 2 ]; then
+    local searchTerm="$1"
+    local file="$2"
+    local result=$(grep -i "$searchTerm" "$file")
+    echo "$result"
+  else
+    echo "Debes ingresar almenos 2 argumentos"
+  fi
+}
+displayRegisters() {
+  local headers=("$1")
+  local data=("${@:2}")
+  # Anchos
+  declare -a column_widths
+  for header in "${headers[@]}"; do
+    column_widths+=("$((${#header} + 2))") # el numero es por padding
   done
+  # Actualizar anchos segun los campos
+  for row in "${data[@]}"; do
+    IFS=',' read -ra row_array <<< "$row"
+    for i in "${!row_array[@]}"; do
+      col_length=$((${#row_array[i]} + 2))
+      if ((col_length > column_widths[i])); then
+        column_widths[i]=$col_length
+      fi
+    done
+  done
+  # Imprimir cabeceras
+  for i in "${!headers[@]}"; do
+    printf "| %-*s " "${column_widths[i]}" "${headers[i]}"
+  done
+  printf "|\n"
+  # Separador
+  for width in "${column_widths[@]}" do
+    printf "+%s" "$(printf '%*s' "$((width + 2))" '')"
+  done
+  printf "+\n"
+  # registros
+  for row in "${data[@]}"; do
+    IFS=',' read -ra row_array <<< "$row"
+    for i in "${!row_array[@]}"; do
+      printf "| %-*s " "${column_widths[i]}" "${row_array[i]}"
+    done
+    printf "|\n"
+  done
+}
+displayCsvRegisters() {
+  local headers=("$@")
+  local file_path="${headers[-1]}"
+  unset headers[-1]
+
+  local csv_data=$(<"$file_path")
+  displayRegisters "${headers[@]}" "$csv_data"
 }

@@ -1,43 +1,19 @@
-buscarPedido(){
-  local pedido_search
-  read -p "Ingrese término de búsqueda o q para cancelar. " pedido_search
-  pedido_search="${pedido_search,,}"
+search_txt="Ingrese término de búsqueda o q para cancelar. "
+editPedido() {
+  local user_input
+  read -p "$search_txt" user_input
+  local result=$(getRegister "$user_input" "$pedidos_list")
 
-  if [ "$pedido_search" == "q" ]; then
-    menuPedidos
-  fi
-  local resultado=$(grep -i "$pedido_search" "$listaPedidos")
-
-  if [ -n "$resultado" ]; then
-    echo ""
-    echo "CODIGO  NOMBRE          TELEFONO"
-    echo "$resultado" | while IFS=, read -r codigo nombre telefono; do
-      printf "%-6.6s %-15.15s %-15.15s\n" "$codigo" "$nombre" "$telefono"
-    done
-    local lines=$(echo "$resultado" | wc -l)
-    if [ "$lines" -eq 1 ]; then
-      local codigo_pedido="${resultado%%,*}"
-      local respuesta
-      printf "\nContinuar con pedido %s?. (responde s/n)\n" "$codigo_pedido"
-      read respuesta
-      respuesta="${respuesta,,}"
-      if [ "$respuesta" == "s" ]; then
-        local opt
-        printf "1. Modificar pedido.\n2.Cancelar pedido.\n3.Marcar como entregado.\n"
-        read opt
-      else
-        # clear
-        # echo "Agregar Pedido"
-        # seleccionarCliente "$1"
-      fi
-    else
-      # printf "\nDemasiados registros, por favor acorte la busqueda utilizando el codigo del cliente.\n\n"
-      # seleccionarCliente "$1"
-    fi
+  if [ -n "$result" ]; then
+    echo $result
   else
-    # clear
-    # echo "No existen registros para su búsqueda. Inténtelo nuevamente."
-    # seleccionarCliente "$1"
+    clear
+    printf "No existen registros que coincidan con '%s'. Intentelo nuevamente..." "$user_input"
+    sleep 3
+    separador
+    echo "Modificar un pedido"
+    separador
+    editPedido
   fi
 }
 ingresarPedido() {
@@ -47,7 +23,7 @@ ingresarPedido() {
   local file=.temp/$fecha
   local current_user="$USER"
   num_orden="ORD001"
-  ultimo_pedido=$(awk -F',' 'NR>1 {firstField=$1} END{if (NR>1) print firstField}' "$listaPedidos")
+  ultimo_pedido=$(awk -F',' 'NR>1 {firstField=$1} END{if (NR>1) print firstField}' "$pedidos_list")
   if [ -n $ultimo_pedido ]; then
     num=$(echo "$ultimo_pedido" | sed 's/ORD//')
     newNum=$(($num + 1))
@@ -60,7 +36,7 @@ ingresarPedido() {
   read -p "Agregar pedido a la base de datos? (responde s/n) " resp
   if [ "$resp" == "s" ]; then
     pedido=$(tail -n +2 "$file")
-    echo "$num_orden,$current_user,$fecha,$pedido" >> $listaPedidos
+    echo "$num_orden,$current_user,$fecha,$pedido" >> $pedidos_list
     rm $file
     echo "Pedido ingresado correctamente"
     sleep 5
@@ -76,7 +52,7 @@ ingresarPedido() {
 }
 seleccionarCliente() {
   local client_search
-  read -p "Ingrese término de búsqueda o q para cancelar. " client_search
+  read -p "$search_txt" client_search
   client_search="${client_search,,}"
 
   if [ "$client_search" == "q" ]; then
