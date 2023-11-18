@@ -1,4 +1,45 @@
-# Archivo temporal COD_CLIENTE,TEL_CLIENTE,COMBO,CANTIDAD,TOTAL
+buscarPedido(){
+  local pedido_search
+  read -p "Ingrese término de búsqueda o q para cancelar. " pedido_search
+  pedido_search="${pedido_search,,}"
+
+  if [ "$pedido_search" == "q" ]; then
+    menuPedidos
+  fi
+  local resultado=$(grep -i "$pedido_search" "$listaPedidos")
+
+  if [ -n "$resultado" ]; then
+    echo ""
+    echo "CODIGO  NOMBRE          TELEFONO"
+    echo "$resultado" | while IFS=, read -r codigo nombre telefono; do
+      printf "%-6.6s %-15.15s %-15.15s\n" "$codigo" "$nombre" "$telefono"
+    done
+    local lines=$(echo "$resultado" | wc -l)
+    if [ "$lines" -eq 1 ]; then
+      local codigo_pedido="${resultado%%,*}"
+      local respuesta
+      printf "\nContinuar con pedido %s?. (responde s/n)\n" "$codigo_pedido"
+      read respuesta
+      respuesta="${respuesta,,}"
+      if [ "$respuesta" == "s" ]; then
+        local opt
+        printf "1. Modificar pedido.\n2.Cancelar pedido.\n3.Marcar como entregado.\n"
+        read opt
+      else
+        # clear
+        # echo "Agregar Pedido"
+        # seleccionarCliente "$1"
+      fi
+    else
+      # printf "\nDemasiados registros, por favor acorte la busqueda utilizando el codigo del cliente.\n\n"
+      # seleccionarCliente "$1"
+    fi
+  else
+    # clear
+    # echo "No existen registros para su búsqueda. Inténtelo nuevamente."
+    # seleccionarCliente "$1"
+  fi
+}
 ingresarPedido() {
   # TODO: manejar caso con la fecha de argumento
   mkdir -p .temp
@@ -16,7 +57,7 @@ ingresarPedido() {
   seleccionarCombo "$file"
   echo "Verifique si los datos son correctos"
   mostrarRegistrosCSV "$file"
-  read -p "Agregar pedido a la base de datos? (responde s/n)" resp
+  read -p "Agregar pedido a la base de datos? (responde s/n) " resp
   if [ "$resp" == "s" ]; then
     pedido=$(tail -n +2 "$file")
     echo "$num_orden,$current_user,$fecha,$pedido" >> $listaPedidos
@@ -86,13 +127,14 @@ seleccionarCombo() {
     rm "$1"
     menuPedidos
   fi
+  combo="${combo^^}"
   local resultado=$(grep -i "$combo" "$listaCombos")
   lines=$(echo "$resultado" | wc -l)
   if [[ -n "$resultado" && "$lines" -eq 1 ]]; then
     local cantidad=0
     local precio="${resultado##*,}"
     while true; do
-      read -p "Ingrese cantidad de $combo" userQty
+      read -p "Ingrese cantidad de $combo " userQty
       if esCantidadValida "$userQty" ; then
         cantidad=$userQty
         break
@@ -103,7 +145,7 @@ seleccionarCombo() {
     done
     local total=$((cantidad * precio))
 
-    printf "\nConfirmar Combo %s X%d por un total de %d?. (responde s/n)\n" "$combo" "$cantidad" "$total"
+    printf "Confirmar Combo %s X%d por un total de %d?. (responde s/n) " "$combo" "$cantidad" "$total"
   read respuesta
   respuesta="${respuesta,,}"
   if [ "$respuesta" == "s" ]; then

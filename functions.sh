@@ -1,4 +1,4 @@
-source pedidos.sh
+source ./pedidos.sh
 source menu.sh
 separador() {
   printf "\n"
@@ -63,9 +63,11 @@ menuPedidos() {
         ;;
       2)
         clear
-        echo "Modificar un pedido"
-        # Implement your logic to remove an item from the list
-        read -p "Elemento modificado. Presiona Enter para continuar..."
+        separador
+        echo "Buscar pedido"
+        separador
+        buscarPedido
+        read -p "Pedido finalizado. $continuar"
         ;;
       3)
         clear
