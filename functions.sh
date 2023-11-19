@@ -53,48 +53,91 @@ getRegister() {
     echo "Debes ingresar almenos 2 argumentos"
   fi
 }
+
 displayRegisters() {
-  local headers=("$1")
+  local headers_string="$1"
   local data=("${@:2}")
-  # Anchos
+
+  # Convert headers string to an array
+  IFS=',' read -ra headers <<< "$headers_string"
+
+  # Determine maximum column widths
   declare -a column_widths
-  for header in "${headers[@]}"; do
-    column_widths+=("$((${#header} + 2))") # el numero es por padding
+  for i in "${!headers[@]}"; do
+    col_length=$((${#headers[i]} + 2))  # Add 2 for padding
+    column_widths+=("$col_length")
   done
-  # Actualizar anchos segun los campos
+
+  # Update maximum column widths based on rows
   for row in "${data[@]}"; do
     IFS=',' read -ra row_array <<< "$row"
     for i in "${!row_array[@]}"; do
-      col_length=$((${#row_array[i]} + 2))
+      col_length=$((${#row_array[i]} + 2))  # Add 2 for padding
       if ((col_length > column_widths[i])); then
         column_widths[i]=$col_length
       fi
     done
   done
-  # Imprimir cabeceras
+
+  # Print headers with adjusted column widths
+  printf "\033[1m"
   for i in "${!headers[@]}"; do
-    printf "| %-*s " "${column_widths[i]}" "${headers[i]}"
+    printf "%-*s " "${column_widths[i]}" "${headers[i]}"
   done
-  printf "|\n"
-  # Separador
-  for width in "${column_widths[@]}" do
-    printf "+%s" "$(printf '%*s' "$((width + 2))" '')"
-  done
-  printf "+\n"
-  # registros
+  printf "\033[0m\n"
+
+  # Print separator line
+for width in "${column_widths[@]}"; do
+  printf "%s" "$(printf '─%.0s' $(seq 1 "$((width + 2))"))"
+done
+printf "\n"
+
+
+  # Print rows with adjusted column widths
   for row in "${data[@]}"; do
     IFS=',' read -ra row_array <<< "$row"
     for i in "${!row_array[@]}"; do
-      printf "| %-*s " "${column_widths[i]}" "${row_array[i]}"
+      printf "%-*s " "${column_widths[i]}" "${row_array[i]}"
     done
-    printf "|\n"
+    printf "\n"
   done
 }
-displayCsvRegisters() {
-  local headers=("$@")
-  local file_path="${headers[-1]}"
-  unset headers[-1]
 
-  local csv_data=$(<"$file_path")
-  displayRegisters "${headers[@]}" "$csv_data"
+
+
+
+displayCsvRegisters() {
+  local headers=("${@:1:$(( $# - 1 ))}")  # Pass all arguments except the last one as headers
+  local file_path="${!#}"  # Use the last argument as the file path
+
+  # Read CSV file into an array
+  IFS=$'\n' read -d '' -ra data < "$file_path"
+
+  # Remove empty elements from the data array
+  data=("${data[@]//[$'\n']/}")
+  headers_string=$(IFS=,; echo "${headers[*]}")
+  # Display table using data variable
+  displayRegisters "$headers_string" "${data[@]}"
+}
+
+searchCsv() {
+  local search_term="$1"
+  local file_path="$2"
+
+  # Read CSV file into an array
+  IFS=$'\n' read -d '' -ra data < "$file_path"
+
+  # Remove empty elements from the data array
+  data=("${data[@]//[$'\n']/}")
+
+  # Filter rows containing the search term
+  local filtered_rows=()
+  for row in "${data[@]}"; do
+    if [[ "$row" =~ .*"$search_term".* ]]; then
+      filtered_rows+=("$row")
+    fi
+  done
+
+  # Display filtered rows
+  displayRegisters "${data[@]:0:1}" "${filtered_rows[@]}"
 }
