@@ -53,41 +53,34 @@ ingresarPedido() {
 seleccionarCliente() {
   local client_search
   read -p "$search_txt" client_search
-  client_search="${client_search,,}"
 
   if [ "$client_search" == "q" ]; then
     menuPedidos
   fi
-  local resultado=$(grep -i "$client_search" "$listaClientes")
-
-  if [ -n "$resultado" ]; then
-    # TODO verificar el scope de $codigo, $nombre, $resultado
-    echo ""
-    echo "CODIGO  NOMBRE          TELEFONO"
-    echo "$resultado" | while IFS=, read -r codigo nombre telefono; do
-      printf "%-6.6s %-15.15s %-15.15s\n" "$codigo" "$nombre" "$telefono"
-    done
-    local lines=$(echo "$resultado" | wc -l)
-    if [ "$lines" -eq 1 ]; then
-      local codigo_cliente="${resultado%%,*}"
-      printf "\nContinuar con cliente %s?. (responde s/n)\n" "$codigo_cliente"
-      # TODO verificar scope
-      read respuesta
-      respuesta="${respuesta,,}"
-      if [ "$respuesta" == "s" ]; then
-        # TODO cambiar a busqueda por campo
-        local tel_cliente="${resultado##*,}"
-        echo "COD_CLIENTE,TEL_CLIENTE,COMBO,CANTIDAD,TOTAL" > $1
-        echo -n "$codigo_cliente,$tel_cliente," >> $1
-      else
-        clear
-        echo "Agregar Pedido"
-        seleccionarCliente "$1"
-      fi
-    else
-      printf "\nDemasiados registros, por favor acorte la busqueda utilizando el codigo del cliente.\n\n"
-      seleccionarCliente "$1"
-    fi
+  local resultado=$(getRegister "$client_search" "$clientes_list")
+  if [[ ${#resultado[@]} -gt 0 ]]; then
+    displayRegisters "$clientes_headers" "{$resultado[@]}"
+    # local lines=$(echo "$resultado" | wc -l)
+    # if [ "$lines" -eq 1 ]; then
+    #   local codigo_cliente="${resultado%%,*}"
+    #   printf "\nContinuar con cliente %s?. (responde s/n)\n" "$codigo_cliente"
+    #   # TODO verificar scope
+    #   read respuesta
+    #   respuesta="${respuesta,,}"
+    #   if [ "$respuesta" == "s" ]; then
+    #     # TODO cambiar a busqueda por campo
+    #     local tel_cliente="${resultado##*,}"
+    #     echo "COD_CLIENTE,TEL_CLIENTE,COMBO,CANTIDAD,TOTAL" > $1
+    #     echo -n "$codigo_cliente,$tel_cliente," >> $1
+    #   else
+    #     clear
+    #     echo "Agregar Pedido"
+    #     seleccionarCliente "$1"
+    #   fi
+    # else
+    #   printf "\nDemasiados registros, por favor acorte la busqueda utilizando el codigo del cliente.\n\n"
+    #   seleccionarCliente "$1"
+    # fi
   else
     clear
     echo "No existen registros para su búsqueda. Inténtelo nuevamente."

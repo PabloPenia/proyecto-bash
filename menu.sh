@@ -1,7 +1,7 @@
 menuPrincipal() {
   while true; do
-  separador
-  printf "$menu_principal"
+  titulo "Menu Principal"
+  printf "\n$menu_principal"
   read -p "Elegir opcion: " opt
   case $opt in
     1)
@@ -10,12 +10,12 @@ menuPrincipal() {
     2)
       # https://losmateospizzeria.com.uy/menu/losmateospizzeria
       clear
-      mostrarRegistrosCSV "$listaCombos"
+      displayCsvRegisters "${combos_headers[@]}" "$combos_list"
       read -p "$continuar"
       ;;
     3)
       clear
-      mostrarRegistrosCSV "$listaClientes"
+      displayCsvRegisters "${clientes_headers[@]}" "$clientes_list"
       read -p "$continuar"
       ;;
     "q")
