@@ -1,3 +1,13 @@
+continuar="Presiona Enter para continuar..."
+clientes_headers="CODIGO,NOMBRE,TELEFONO"
+clientes_list="db/clientes.csv"
+combos_headers="CODIGO,NOMBRE,DETALLE,PRECIO"
+combos_list="db/combos.csv"
+pedidos_headers="CODIGO,USUARIO,FECHA,CLIENTE,TEL,COMBO,CANT,TOTAL"
+pedidos_list="db/pedidos.csv"
+logoFile="logo.txt"
+menu_pedidos="Menu - Lista de pedidos.\n1. Ingresar nuevo.\n2. Modificar pedido.\n3. Ver todos.\nq. Volver al menu principal.\n"
+menu_principal="1. Administrar pedidos.\n2. Ver combos.\n3. Ver clientes.\nq. Salir.\n"
 menuPrincipal() {
   while true; do
   titulo "Menu Principal"

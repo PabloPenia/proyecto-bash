@@ -12,22 +12,51 @@ titulo() {
   printf "\n$bold $1 $reset_bold"
 }
 
-getRegister() {
-  if [ "$#" -eq 2 ]; then
-    local search_term="$1"
-    local file="$2"
-    IFS=$'\n' read -d '' -ra data < "$file" # archivo -> array
-    data=("${data[@]//[$'\n']/}")
+# getRegister() {
+#   if [ "$#" -eq 2 ]; then
+#     local search_term="$1"
+#     local file="$2"
 
-    local filtered_rows=()
-    for row in "${data[@]}"; do
-      if grep -i "$search_term" <<< "$row"; then
-        filtered_rows+=("$row")
-      fi
-    done
-    echo "${filtered_rows[@]}"
-  fi
+#     # Read the file into an array, handling null bytes
+#     mapfile -t data < "$file"
+
+#     local filtered_rows=()
+#     for row in "${data[@]}"; do
+#       if echo "$row" | grep -iq "$search_term"; then
+#         filtered_rows+=("$row")
+#       fi
+#     done
+
+#     if [ ${#filtered_rows[@]} -gt 0 ]; then
+#       # Use printf to join array elements with a space
+#       printf '%s ' "${filtered_rows[@]}"
+#     fi
+#   fi
+# }
+
+
+
+
+
+
+getRegister() {
+  local search_term="$1"
+  local file="$2"
+  local temp_file="$3"
+  
+
+  # Filter the data based on the search term and create the temporary file
+  grep -i "$search_term" "$file" > "$temp_file"
 }
+
+
+
+
+
+
+
+
+
 
 displayRegisters() {
   local headers_string="$1"

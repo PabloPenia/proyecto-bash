@@ -30,63 +30,67 @@ ingresarPedido() {
     num_orden="ORD$(printf "%03d" "$newNum")"    
   fi
   seleccionarCliente "$file"
-  seleccionarCombo "$file"
-  echo "Verifique si los datos son correctos"
-  mostrarRegistrosCSV "$file"
-  read -p "Agregar pedido a la base de datos? (responde s/n) " resp
-  if [ "$resp" == "s" ]; then
-    pedido=$(tail -n +2 "$file")
-    echo "$num_orden,$current_user,$fecha,$pedido" >> $pedidos_list
-    rm $file
-    echo "Pedido ingresado correctamente"
-    sleep 5
-    menuPedidos
-  else
-    clear
-    echo "El pedido se ha cancelado"
-    rm $file
-    sleep 5
-    menuPedidos
-  fi
+  # seleccionarCombo "$file"
+  # echo "Verifique si los datos son correctos"
+  # mostrarRegistrosCSV "$file"
+  # read -p "Agregar pedido a la base de datos? (responde s/n) " resp
+  # if [ "$resp" == "s" ]; then
+  #   pedido=$(tail -n +2 "$file")
+  #   echo "$num_orden,$current_user,$fecha,$pedido" >> $pedidos_list
+  #   rm $file
+  #   echo "Pedido ingresado correctamente"
+  #   sleep 5
+  #   menuPedidos
+  # else
+  #   clear
+  #   echo "El pedido se ha cancelado"
+  #   rm $file
+  #   sleep 5
+  #   menuPedidos
+  # fi
   read -p "$continuar"
 }
-seleccionarCliente() {
-  local client_search
-  read -p "$search_txt" client_search
+# seleccionarCliente() {
+#   local user_input
+#   read -p "$search_txt" user_input
 
-  if [ "$client_search" == "q" ]; then
-    menuPedidos
-  fi
-  local resultado=$(getRegister "$client_search" "$clientes_list")
-  if [[ ${#resultado[@]} -gt 0 ]]; then
-    displayRegisters "$clientes_headers" "{$resultado[@]}"
-    # local lines=$(echo "$resultado" | wc -l)
-    # if [ "$lines" -eq 1 ]; then
-    #   local codigo_cliente="${resultado%%,*}"
-    #   printf "\nContinuar con cliente %s?. (responde s/n)\n" "$codigo_cliente"
-    #   # TODO verificar scope
-    #   read respuesta
-    #   respuesta="${respuesta,,}"
-    #   if [ "$respuesta" == "s" ]; then
-    #     # TODO cambiar a busqueda por campo
-    #     local tel_cliente="${resultado##*,}"
-    #     echo "COD_CLIENTE,TEL_CLIENTE,COMBO,CANTIDAD,TOTAL" > $1
-    #     echo -n "$codigo_cliente,$tel_cliente," >> $1
-    #   else
-    #     clear
-    #     echo "Agregar Pedido"
-    #     seleccionarCliente "$1"
-    #   fi
-    # else
-    #   printf "\nDemasiados registros, por favor acorte la busqueda utilizando el codigo del cliente.\n\n"
-    #   seleccionarCliente "$1"
-    # fi
+#   if [ "$user_input" == "q" ]; then
+#     menuPedidos
+#   fi
+
+#   local resultado=($(getRegister "$user_input" "$clientes_list"))
+#     printf "${resultado[@]}"
+
+#   if [ "${#resultado[@]}" -gt 0 ]; then
+#     displayRegisters "$clientes_headers" "${resultado[@]}"
+#   else
+#     echo "No existen registros para su búsqueda. Inténtelo nuevamente."
+#     sleep 5
+#     seleccionarCliente "$1"
+#   fi
+# }
+seleccionarCliente() {
+  echo "Ingrese término de búsqueda o q para cancelar."
+  read -r search_term
+
+  if [ "$search_term" == "q" ]; then
+    echo "Búsqueda cancelada."
   else
-    clear
-    echo "No existen registros para su búsqueda. Inténtelo nuevamente."
-    seleccionarCliente "$1"
+    # Create a temporary file based on the current date and time
+    local fecha=$(date +"%d-%m-%Y-%H%M%S")
+    local temp_file=".temp/$fecha.txt"
+
+    # Call getRegister and pass the search term and temporary file
+    getRegister "$search_term" "$clientes_list" "$temp_file"
+
+    # Display the results using displayCsvRegisters
+    displayCsvRegisters "CODIGO,NOMBRE,TELEFONO" "$temp_file"
   fi
 }
+
+
+
+
 seleccionarCombo() {
   mostrarRegistrosCSV "$listaCombos"
   local combo
