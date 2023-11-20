@@ -7,6 +7,7 @@ pedidos_headers="CODIGO,USUARIO,FECHA,CLIENTE,TEL,COMBO,CANT,TOTAL"
 pedidos_list="db/pedidos.csv"
 logoFile="logo.txt"
 menu_pedidos="Menu - Lista de pedidos.\n1. Ingresar nuevo.\n2. Modificar pedido.\n3. Ver todos.\nq. Volver al menu principal.\n"
+menu_editar_pedido="Menu - Editar pedido.\n1. Modificar combo.\n2. Marcar como entregados.\n3. Eliminar.\nq. Volver al menu principal.\n"
 menu_principal="1. Administrar pedidos.\n2. Ver combos.\n3. Ver clientes.\nq. Salir.\n"
 menuPrincipal() {
   while true; do

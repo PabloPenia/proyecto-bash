@@ -34,29 +34,13 @@ titulo() {
 #   fi
 # }
 
-
-
-
-
-
 getRegister() {
   local search_term="$1"
   local file="$2"
   local temp_file="$3"
   
-
-  # Filter the data based on the search term and create the temporary file
   grep -i "$search_term" "$file" > "$temp_file"
 }
-
-
-
-
-
-
-
-
-
 
 displayRegisters() {
   local headers_string="$1"
@@ -110,9 +94,6 @@ displayRegisters() {
     echo "No hay datos que mostrar"
   fi
 }
-
-
-
 
 displayCsvRegisters() {
   local headers="$1"
