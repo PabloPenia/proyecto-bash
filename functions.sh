@@ -1,8 +1,24 @@
 
 bold="\033[1m"
-reset_bold="\033[0m\n"
+green='\033[1;32m'
+red='\033[1;31m'
+reset_bold="\033[0m"
 
+center() {
+    local contenido="$1"
+    local width=$(tput cols)
+    local margen=$(( (width - ${#contenido}) / 2 ))
+    printf "%${margen}s%s" "" "$contenido"
+}
+centerImage() {
+    imagen=$1
+    terminal_width=$(tput cols)
+    image_width=$(awk '{ print length }' "$imagen" | sort -n | tail -n 1)
+    margin=$(( (terminal_width - image_width) / 2 ))
 
+    # Output the centered image
+    awk -v margin="$margin" '{printf "%"margin"s%s\n", "", $0}' "$imagen"
+}
 separador() {
   printf "\n"
   printf "%s" "$(printf '─%.0s' $(seq 1 $(tput cols)))"
@@ -11,7 +27,12 @@ separador() {
 titulo() {
   printf "\n$bold $1 $reset_bold"
 }
-
+success() {
+  printf "\n$green $1 $reset_bold"
+}
+error() {
+  printf "\n$red $1 $reset_bold"
+}
 # getRegister() {
 #   if [ "$#" -eq 2 ]; then
 #     local search_term="$1"
@@ -69,11 +90,11 @@ displayRegisters() {
     done
 
     # Print headers with adjusted column widths
-    printf "$bold"
+    printf "\n$bold"
     for i in "${!headers[@]}"; do
       printf "%-*s " "${column_widths[i]}" "${headers[i]}"
     done
-    printf "$reset_bold"
+    printf "$reset_bold\n"
 
     # Print separator line
     for width in "${column_widths[@]}"; do
@@ -90,8 +111,9 @@ displayRegisters() {
       done
       printf "\n"
     done
+    printf "\n"
   else
-    echo "No hay datos que mostrar"
+    error "No hay datos que mostrar\n"
   fi
 }
 

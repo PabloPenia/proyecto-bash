@@ -2,13 +2,13 @@
 source menu.sh  # Logica de los menúes
 source functions.sh # herramientas
 source pedidos.sh # admin de pedidos
-
 clear
 if [ -f "$logoFile" ]; then
-  logo=$(cat "$logoFile")
-  echo "$logo"
+  centerImage $logoFile
 fi
 separador
-titulo "**** BIENVENIDO AL CONTROL DE LA PIZZERA ****"
+printf "$bold"
+center "**** BIENVENIDO AL CONTROL DE LA PIZZERA ****"
+printf "$reset_bold"
 separador
 menuPrincipal
