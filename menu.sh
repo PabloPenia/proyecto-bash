@@ -84,10 +84,7 @@ menuPedidos() {
         read -p "$continuar"
         ;;
       4)
-        clear
-        header "Resumen de Ventas"
-        getResumen
-        menuPedidos
+        menuResumen
         ;;
       "q")
         clear
@@ -98,6 +95,140 @@ menuPedidos() {
         error "$opt no es una opción válida."
         sleep 3
         menuPedidos
+        ;;
+    esac
+  done
+}
+menuEditPedido() {
+  local file="$1"
+  local temp_old_order="$2"
+  local temp_file=$(mktemp --tmpdir="$temp_dir")
+  while true; do
+    clear
+    header "Modificar Pedido"
+    printf "$menu_editar_pedido"    
+    read -p "Selecciona una opción: " opt
+    case $opt in
+      1)
+        clear
+        header "Modificar el combo"
+        seleccionarCombo "$file"
+        echo ",PENDIENTE" >> $file
+        echo "Verifique si los nuevos datos son correctos"
+        displayCsvRegisters "$pedidos_headers" "$file"
+        read -p "Modificar pedido en la base de datos? (responde q para cancelar) " user_input
+        if [ "$user_input" != "q" ]; then
+          awk -F, 'NR==FNR {data[$1]=$0; next} {if ($1 in data) print data[$1]; else print $0}' "$file" "$pedidos_list" > "$temp_file"
+          mv $temp_file "$pedidos_list"
+          borrarTemporales
+          success "Pedido modificado correctamente\n"
+          sleep 3
+          menuPedidos
+        else
+          clear
+          error "Se ha cancelado la modificacion del pedido.\n"
+          borrarTemporales
+          sleep 3
+          menuPedidos
+        fi
+        ;;
+      2)
+        clear
+        header "Marcar como entregado"
+        local code_combo=$(awk -F, '{print $6}' "$temp_old_order")
+        local cantidad=$(awk -F, '{print $7}' "$temp_old_order")
+        local total=$(awk -F, '{print $8}' "$temp_old_order")
+        error "Esta seguro que quiere marcar este pedido como entregado?\n"
+        displayCsvRegisters "$pedidos_headers" "$temp_old_order"
+        read -p " (responde q para cancelar) " user_input
+        echo -n ",$code_combo,$cantidad,$total" >> $file
+        if [ "$user_input" != "q" ]; then
+          echo ",ENTREGADO" >> $file
+          awk -F, 'NR==FNR {data[$1]=$0; next} {if ($1 in data) print data[$1]; else print $0}' "$file" "$pedidos_list" > "$temp_file"
+          mv "$temp_file" "$pedidos_list"
+          borrarTemporales
+          success "Pedido marcado como entregado.\n"
+          sleep 3
+          menuPedidos
+        else
+          error "Accion cancelada.\n"
+          borrarTemporales
+          sleep 3
+          menuPedidos
+        fi
+        ;;
+      3)
+        clear
+        header "Cancelar pedido"
+        local pedido_eliminar=$(<"$temp_old_order" tr -d '\n')
+        error "Esta seguro que quiere eliminar este pedido de la base de datos?\n"
+        echo -n "$pedido_eliminar" > "$temp_old_order"
+        displayCsvRegisters "$pedidos_headers" "$temp_old_order"
+        read -p " (responde q para cancelar) " user_input
+        if [ "$resp" != "q" ]; then
+          awk -v content="$pedido_eliminar" '$0 != content' "$pedidos_list" > "$temp_file"
+          mv "$temp_file" "$pedidos_list"
+          success "Pedido eliminado correctamente.\n"
+          borrarTemporales
+          sleep 3
+          menuPedidos
+        else
+          error "Accion cancelada.\n"
+          sleep 3
+          borrarTemporales
+          menuPedidos
+        fi            
+        ;;
+      "q") 
+        menuPedidos
+        ;;
+      *)
+      clear
+      error "$opt no es una opción válida\n"
+      sleep 3
+      menuPedidos
+      ;;
+    esac
+  done
+}
+menuResumen() {
+  while true; do
+    clear
+    header "Resumen de ventas"
+    printf "$menu_resumen"    
+    read -p "Selecciona una opción: " opt
+    case $opt in
+      1)
+        clear
+        header "Ventas por combo"
+        displayCsvRegisters "$combos_headers" "$combos_list"            
+        getVentasPorCombo
+        ;;
+      2)
+        clear
+        header "Compras por cliente"
+        displayCsvRegisters "$clientes_headers" "$clientes_list"            
+        getVentasPorCliente
+        ;;
+      3)
+        clear
+        header "Pedidos por cliente"
+        displayCsvRegisters "$clientes_headers" "$clientes_list"
+        getPedidosPorCliente
+        ;;
+      4)
+        clear
+        header "Ventas por usuario"
+        getVentasPorUsuario
+        ;;
+      "q") 
+        menuPedidos
+        ;;
+
+      *)
+        clear
+        error "$opt no es una opción válida\n"
+        read -p "$continuar"
         ;;
     esac
   done

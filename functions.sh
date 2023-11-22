@@ -112,7 +112,7 @@ displayCsvRegisters() {
 }
 # Tools
 borrarTemporales(){
-  rm -f .temp/*
+  rm -f .tmp/*
 }
 esCantidadValida() {
   [[ $1 =~ ^[1-9][0-9]*$ ]]
