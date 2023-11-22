@@ -4,7 +4,7 @@ source functions.sh # herramientas
 source pedidos.sh # admin de pedidos
 temp_dir=".tmp"
 # current_user="$USER"
-current_user="windows"
+current_user="$USER"
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then
   showHelp
   exit 0
