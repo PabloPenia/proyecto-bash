@@ -6,10 +6,10 @@ combos_list="db/combos.csv"
 continuar="Presiona Enter para continuar..."
 logoFile="logo.txt"
 menu_editar_pedido="1. Modificar combo.\n2. Marcar como entregados.\n3. Eliminar.\nq. Volver al menu principal.\n"
-menu_pedidos="\n1. Ingresar nuevo.\n2. Modificar pedido.\n3. Ver todos.\n4. Resumen de ventas.\nq. Volver al menu principal.\n"
-menu_principal="1. Administrar pedidos.\n2. Ver combos.\n3. Ver clientes.\nq. Salir.\n"
-menu_resumen="\n1. Combos vendidos del mes.\n2. Compras por cliente.\n3. Pedidos por cliente.\n4. Ventas por usuario.\nq. Volver al menu principal.\n"
-pedidos_headers="CODIGO,USUARIO,FECHA,CLIENTE,TEL,COMBO,CANT,TOTAL,ESTADO"
+menu_pedidos="\n1. Ingresar nuevo.\n2. Modificar pedido.\n3. Ver todos.\nq. Volver al menu principal.\n"
+menu_principal="1. Administrar pedidos.\n2. Ver combos.\n3. Ver clientes.\n4. Resumen de ventas.\nq. Salir.\n"
+menu_resumen="\n1. Combos vendidos del mes.\n2. Compras por cliente.\n3. Ventas por usuario.\n4. Mis ventas.\nq. Volver al menu principal.\n"
+pedidos_headers="CODIGO,FECHA,USUARIO,CLIENTE,TEL,COMBO,CANT,TOTAL,ESTADO"
 pedidos_list="db/pedidos.csv"
 search_txt="Ingrese término de búsqueda o q para cancelar. "
 # MENUES
@@ -42,10 +42,13 @@ menuPrincipal() {
         read -p "$continuar"
         menuPrincipal
         ;;
+      4)
+        menuResumen
+        ;;
       "q")
         clear
         success "Finalizando..."
-        rm -f .temp/*
+        borrarTemporales
         sleep 3
         exit 0
         ;;
@@ -82,9 +85,6 @@ menuPedidos() {
         header "Lista de Pedidos"
         displayCsvRegisters "$pedidos_headers" "$pedidos_list"
         read -p "$continuar"
-        ;;
-      4)
-        menuResumen
         ;;
       "q")
         clear
@@ -212,14 +212,17 @@ menuResumen() {
         ;;
       3)
         clear
-        header "Pedidos por cliente"
-        displayCsvRegisters "$clientes_headers" "$clientes_list"
-        getPedidosPorCliente
+        header "Ventas por usuario"
+        read -p "Ingrese el nombre del usuario, o q para cancelar " user_input
+        if [ "${user_input,,}" == "q" ]; then
+          menuResumen
+        else
+          getVentasPorUsuario "$user_input"
+        fi
         ;;
       4)
         clear
-        header "Ventas por usuario"
-        getVentasPorUsuario
+        getVentasPorUsuario "$current_user"
         ;;
       "q") 
         menuPedidos

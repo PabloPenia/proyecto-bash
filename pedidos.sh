@@ -1,6 +1,3 @@
-temp_dir=".tmp"
-current_user="$USER"
-
 ingresarPedido() {
   mkdir -p .tmp
   local fecha=$(date +"%d-%m-%Y-%H%M%S")
@@ -21,9 +18,9 @@ ingresarPedido() {
   echo ",PENDIENTE" >> "$temp_file"
   success "Verifique si los datos son correctos\n"
   displayCsvRegisters "$pedidos_headers" "$temp_file"
-  read -p "Agregar pedido a la base de datos? (responde s para continuar) " user_input
+  read -p "Agregar pedido a la base de datos? (responde q para cancelar) " user_input
 
-  if [ "$user_input" == "s" ]; then
+  if [ "${user_input,,}" != "q" ]; then
     pedido=$(< "$temp_file")
     echo "$pedido" >> "$pedidos_list"
     borrarTemporales
@@ -104,70 +101,64 @@ seleccionarCombo() {
   fi
 }
 getVentasPorCombo() {
-  local user_input
+  local temp_file=$(mktemp --tmpdir="$temp_dir")
   read -p "Ingrese el codigo del combo, o q para cancelar " user_input
   if [ "${user_input,,}" == "q" ]; then
     menuResumen
   else
     user_input="${user_input^^}"
-    local result=$(awk -F, '$1=="'$user_input'" {print $0; exit}' "$combos_list")
-    if [ -z "$result" ]; then
-      error "El codigo no existe en la base de datos."
+    if awk -v combo="$user_input" -F',' '$1 == combo {found=1; exit} END{exit !found}' "$combos_list"; then
+      local current_month=$(date +'%m')
+      awk -v combo="$user_input" -v month="$current_month" -F',' '{split($2, date, "-"); if(date[2] == month && $6 == combo) print}' "$pedidos_list" > "$temp_file"
+      local suma=$(awk -F',' 'BEGIN{suma=0} { suma += $7 } END{print suma}' "$temp_file")
+      clear
+      displayCsvRegisters "$pedidos_headers" "$temp_file"
+      success "Se vendieron un total de $suma combos $user_input en el mes.\n"
+      read -p "$continuar"     
+    else
+      error "El combo $user_input no existe en la base de datos."
       sleep 3
       getVentasPorCombo
-    else
-      local suma=$(awk -F ',' -v code="$user_input" '{ total = 0 } $6 == code {total += $7} END {print total}' "$pedidos_list")
-      success "Se vendieron un total de $suma combos $user_input\n"
-      read -p "$continuar"  
     fi
   fi
 }
 getVentasPorCliente() {
-  local user_input
+  local temp_file=$(mktemp --tmpdir="$temp_dir")
   read -p "Ingrese el codigo del cliente, o q para cancelar " user_input
   if [ "${user_input,,}" == "q" ]; then
     menuResumen
   else
     user_input="${user_input^^}"
-    local result=$(awk -F, '$1=="'$user_input'" {print $0; exit}' "$clientes_list")
-    if [ -z "$result" ]; then
-      error "El codigo no existe en la base de datos."
+    if awk -v cliente="$user_input" -F',' '$1 == cliente {found=1; exit} END{exit !found}' "$clientes_list"; then
+      awk -v cliente="$user_input" -F',' '$4 == cliente' "$pedidos_list" > "$temp_file"
+      local suma=$(awk -F',' 'BEGIN{suma=0} { suma += $8 } END{print suma}' "$temp_file")
+      clear
+      displayCsvRegisters "$pedidos_headers" "$temp_file"
+      success "El cliente $user_input ha gastado un total de $suma en compras.\n"
+      read -p "$continuar"
+    else
+      error "El cliente $user_input no existe en la base de datos."
       sleep 3
       getVentasPorCliente
-    else
-      local suma=$(awk -F ',' -v code="$user_input" '{ total = 0 } $4 == code {total += $8} END {print total}' "$pedidos_list")
-      success "El cliente $user_input ha gastado un total de $suma en compras.\n"
-      read -p "$continuar"  
     fi
   fi
 }
-getPedidosPorCliente() {
-  local temp_file=$(mktemp --tmpdir="$temp_dir")
-  local user_input
-  read -p "Ingrese el codigo del cliente, o q para cancelar " user_input
-  if [ "${user_input,,}" == "q" ]; then
-    menuResumen
-  else
-    user_input="${user_input^^}"
-    awk -F ',' -v code="$user_input" '$4 == code {print > "'$temp_file'"}' "$pedidos_list"
-    clear
-    header "Pedidos del cliente $user_input"
-    displayCsvRegisters "$pedidos_headers" "$temp_file"
-    read -p "$continuar"  
-  fi
-  
-}
 getVentasPorUsuario() {
-  local user_input
-  read -p "Ingrese el nombre del usuario, o q para cancelar " user_input
-  if [ "${user_input,,}" == "q" ]; then
-    menuResumen
+  local usuario="$1"
+  local temp_file=$(mktemp --tmpdir="$temp_dir")
+  awk -v user="$usuario" -F',' 'tolower($3) == tolower(user) {print}' "$pedidos_list" > "$temp_file"
+  if [ -s "$temp_file" ]; then
+    clear
+    header "Ventas de $usuario"
+    local num_ventas=$(wc -l < "$temp_file")
+    local sum_ventas=$(awk -F',' '{sum += $8} END {print sum}' "$temp_file")
+    displayCsvRegisters "$pedidos_headers" "$temp_file"
+    success "El usuario $usuario ha realizado $num_ventas  ventas por un total de $ $sum_ventas.\n"
+    read -p "$continuar"
   else
-    local suma=$(awk -F ',' -v code="$user_input" '$3 == code { c++ } END { if (c) { print c } else { print 0 } }' "$pedidos_list")
-    success "El usuario $user_input ha realizado un total de $suma ventas.\n"
-    read -p "$continuar"  
+    error "El usuario $usuario no ha realizado ninguna venta o no es válido.\n"
+    read -p "$continuar"
   fi
-  
 }
 editPedido() {
   mkdir -p .tmp

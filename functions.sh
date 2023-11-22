@@ -117,3 +117,12 @@ borrarTemporales(){
 esCantidadValida() {
   [[ $1 =~ ^[1-9][0-9]*$ ]]
 }
+
+showHelp() {
+  echo ""
+  echo "USO: $(basename "$0") [--help, -h]"
+  echo ""
+  cat "./docs/help.txt"
+  echo ""
+  # read -p $continuar
+}

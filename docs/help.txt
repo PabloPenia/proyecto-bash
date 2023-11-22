@@ -1,0 +1,14 @@
+Script de linea de comandos que permite administrar y visualizar pedidos de una pizzeria.
+
+CARACTERISTICAS
+
+- Listar clientes
+- Listar combos
+- Listar pedidos
+- Administrar Pedidos (Agregar, modificar, eliminar)
+- Permite marcar pedidos enviados como Entregados
+- Diferentes stats y resumenes de ventas
+- Exportar e imprimir listas.
+
+OPCIONES
+--help, -h Muestra la ayuda
