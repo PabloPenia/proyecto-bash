@@ -1,5 +1,4 @@
 ingresarPedido() {
-  mkdir -p .tmp
   local fecha=$(date +"%d-%m-%Y-%H%M%S")
   local temp_file=$(mktemp --tmpdir="$temp_dir")
   local num_orden="ORD001" # si no hay ninguna creada utiliza esta
@@ -161,7 +160,6 @@ getVentasPorUsuario() {
   fi
 }
 editPedido() {
-  mkdir -p .tmp
   local fecha=$(date +"%d-%m-%Y-%H%M%S")
   local temp_file=$(mktemp --tmpdir="$temp_dir")
   local temp_old_order=$(mktemp --tmpdir="$temp_dir")

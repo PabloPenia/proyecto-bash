@@ -112,7 +112,7 @@ displayCsvRegisters() {
 }
 # Tools
 borrarTemporales(){
-  rm -f .tmp/*
+  rm -f $temp_dir/*
 }
 esCantidadValida() {
   [[ $1 =~ ^[1-9][0-9]*$ ]]
@@ -122,7 +122,7 @@ showHelp() {
   echo ""
   echo "USO: $(basename "$0") [--help, -h]"
   echo ""
-  cat "./docs/help.txt"
+  cat "./src/data/help.txt"
   echo ""
   # read -p $continuar
 }

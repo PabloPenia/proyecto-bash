@@ -1,16 +1,16 @@
 # TEXTOS
 clientes_headers="CODIGO,NOMBRE,TELEFONO"
-clientes_list="db/clientes.csv"
+clientes_list="./src/db/clientes.csv"
 combos_headers="CODIGO,NOMBRE,DETALLE,PRECIO"
-combos_list="db/combos.csv"
+combos_list="./src/db/combos.csv"
 continuar="Presiona Enter para continuar..."
-logoFile="logo.txt"
+logoFile="./src/data/logo.txt"
 menu_editar_pedido="1. Modificar combo.\n2. Marcar como entregados.\n3. Eliminar.\nq. Volver al menu principal.\n"
 menu_pedidos="\n1. Ingresar nuevo.\n2. Modificar pedido.\n3. Ver todos.\nq. Volver al menu principal.\n"
 menu_principal="1. Administrar pedidos.\n2. Ver combos.\n3. Ver clientes.\n4. Resumen de ventas.\nq. Salir.\n"
 menu_resumen="\n1. Combos vendidos del mes.\n2. Compras por cliente.\n3. Ventas por usuario.\n4. Mis ventas.\nq. Volver al menu principal.\n"
 pedidos_headers="CODIGO,FECHA,USUARIO,CLIENTE,TEL,COMBO,CANT,TOTAL,ESTADO"
-pedidos_list="db/pedidos.csv"
+pedidos_list="./src/db/pedidos.csv"
 search_txt="Ingrese término de búsqueda o q para cancelar. "
 # MENUES
 menuPrincipal() {
